@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Beer Exchange - Live Prices</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #111;
+            color: #0f0;
+            text-align: center;
+            padding: 2rem;
+        }
+        h1 {
+            color: #fff;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 60%;
+        }
+        th, td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #444;
+        }
+        th {
+            background-color: #222;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍺 The Beer Exchange</h1>
+    <p>Live drink prices (auto-refreshing)</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Drink</th>
+                <th>Price ($)</th>
+            </tr>
+        </thead>
+        <tbody id="prices-body">
+            <tr><td colspan="2">Loading...</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchPrices() {
+            try {
+                const res = await fetch('/update-prices');
+                const data = await res.json();
+                const tbody = document.getElementById('prices-body');
+                tbody.innerHTML = '';
+                Object.entries(data.updated_prices).forEach(([drink, price]) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${drink}</td><td>$${price.toFixed(2)}</td>`;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error('Failed to fetch prices', err);
+            }
+        }
+
+        fetchPrices();
+        setInterval(fetchPrices, 10000); // refresh every 10 seconds
+    </script>
+</body>
+</html>
