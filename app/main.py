@@ -1,7 +1,11 @@
-from fastapi import FastAPI
 
-app = FastAPI()
+from fastapi import FastAPI
+from app.routers import drinks
+
+app = FastAPI(title="The Beer Exchange")
+
+app.include_router(drinks.router)
 
 @app.get("/")
-def home():
+def root():
     return {"message": "FastAPI is working!"}
