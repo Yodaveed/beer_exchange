@@ -1,7 +1,7 @@
-
 from fastapi import APIRouter, Query
-from app.models import drink_prices, user_points
+from app.models import drink_prices, user_points, locked_futures, lock_price
 from app.price_engine import update_prices
+from datetime import datetime
 
 router = APIRouter()
 
@@ -14,19 +14,28 @@ def update_drink_prices():
 def order_drink(user_id: str = Query(...), drink: str = Query(...)):
     if drink not in drink_prices:
         return {"error": "Drink not found."}
-    
-    price = drink_prices[drink]
-    points = int(price)
+
+    # Check if user has an active lock-in for this drink
+    locked_price = None
+    now = datetime.utcnow()
+
+    for lock in locked_futures:
+        if lock["user_id"] == user_id and lock["drink"] == drink:
+            if lock["expires_at"] > now:
+                locked_price = lock["locked_price"]
+                break
+
+    price_used = locked_price if locked_price is not None else drink_prices[drink]
+    points = int(price_used)
     user_points[user_id] = user_points.get(user_id, 0) + points
 
     return {
         "message": f"{drink} ordered",
-        "price": price,
+        "price_used": price_used,
+        "used_locked_price": locked_price is not None,
         "points_earned": points,
         "user_total_points": user_points[user_id]
     }
-from app.models import locked_futures, lock_price
-from datetime import datetime
 
 @router.post("/lock-in-price")
 def lock_in_price(user_id: str = Query(...), drink: str = Query(...)):
