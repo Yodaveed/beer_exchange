@@ -55,3 +55,19 @@ def lock_in_price(user_id: str = Query(...), drink: str = Query(...)):
         "message": f"{drink} locked in at ${price:.2f} for 1 hour",
         "remaining_points": user_points[user_id]
     }
+@router.get("/futures")
+def get_futures(user_id: str = Query(None)):
+    now = datetime.utcnow()
+    active_futures = []
+
+    for lock in locked_futures:
+        if lock["expires_at"] > now:
+            if user_id is None or lock["user_id"] == user_id:
+                active_futures.append({
+                    "user_id": lock["user_id"],
+                    "drink": lock["drink"],
+                    "locked_price": lock["locked_price"],
+                    "expires_at": lock["expires_at"].isoformat()
+                })
+
+    return {"active_futures": active_futures}
