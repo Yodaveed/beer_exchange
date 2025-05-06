@@ -51,6 +51,11 @@
 
         <div id="points-section">
             <h3>Your Points: <span id="points">0</span></h3>
+            <div id="futures-section">
+                <h4>Your Active Lock-Ins</h4>
+                <ul id="futures-list"></ul>
+            </div>
+            
         </div>
     </div>
 
@@ -80,7 +85,32 @@
             document.getElementById('points').innerText = pointsData.user_total_points;
 
             document.getElementById('prices').style.display = 'block';
+            fetchFutures(userId);
+
         }
+        <script>
+    async function fetchFutures(userId) {
+        const res = await fetch(`/futures?user_id=${userId}`);
+        const data = await res.json();
+        const list = document.getElementById('futures-list');
+        list.innerHTML = '';
+
+        if (data.active_futures.length === 0) {
+            const li = document.createElement('li');
+            li.innerText = "No active futures.";
+            list.appendChild(li);
+        } else {
+            data.active_futures.forEach(f => {
+                const expiresAt = new Date(f.expires_at);
+                const minutesLeft = Math.max(0, Math.floor((expiresAt - new Date()) / 60000));
+                const li = document.createElement('li');
+                li.innerText = `${f.drink} — $${f.locked_price.toFixed(2)} — expires in ${minutesLeft} min`;
+                list.appendChild(li);
+            });
+        }
+    }
+</script>
+
     </script>
 </body>
 </html>
