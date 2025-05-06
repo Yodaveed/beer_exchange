@@ -16,3 +16,6 @@ def root():
 @app.get("/dashboard")
 def get_dashboard():
     return FileResponse("app/static/dashboard.html")
+@app.get("/mobile")
+def get_mobile():
+    return FileResponse("app/static/mobile.html")

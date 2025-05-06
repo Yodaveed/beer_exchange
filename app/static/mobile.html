@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Beer Exchange – Guest View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 1rem;
+            background: #f8f8f8;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+        }
+        input, button {
+            padding: 0.5rem;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        th, td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #ccc;
+        }
+        #points-section {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍺 The Beer Exchange</h1>
+
+    <label for="user_id">Enter your name or ID:</label>
+    <input type="text" id="user_id" placeholder="e.g. david">
+    <button onclick="loadData()">Show My Prices & Points</button>
+
+    <div id="prices" style="display:none;">
+        <h2>Live Prices</h2>
+        <table>
+            <thead><tr><th>Drink</th><th>Price ($)</th></tr></thead>
+            <tbody id="price-body"></tbody>
+        </table>
+
+        <div id="points-section">
+            <h3>Your Points: <span id="points">0</span></h3>
+        </div>
+    </div>
+
+    <script>
+        async function loadData() {
+            const userId = document.getElementById('user_id').value.trim();
+            if (!userId) {
+                alert("Please enter your ID or name.");
+                return;
+            }
+
+            // Fetch prices
+            const res = await fetch('/update-prices');
+            const data = await res.json();
+
+            const tbody = document.getElementById('price-body');
+            tbody.innerHTML = '';
+            Object.entries(data.updated_prices).forEach(([drink, price]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${drink}</td><td>$${price.toFixed(2)}</td>`;
+                tbody.appendChild(row);
+            });
+
+            // Fetch points (simulate by ordering a dummy drink at $0)
+            const pointsRes = await fetch(`/order-drink?user_id=${userId}&drink=Juicy IPA`);
+            const pointsData = await pointsRes.json();
+            document.getElementById('points').innerText = pointsData.user_total_points;
+
+            document.getElementById('prices').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
